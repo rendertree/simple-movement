@@ -36,9 +36,10 @@ Player::Player()
 
     _animState = "Idle";
 
-    _animStateActions.insert({ "Idle", [this](Player& anim) { Idle(anim); } });
-    _animStateActions.insert({ "Walk", [this](Player& anim) { Walk(anim); } });
-    _animStateActions.insert({ "Run",  [this](Player& anim) { Run(anim); } });
+    _animStateActions.insert({ "Idle",      [this](Player& anim)   { Idle(anim); } });
+    _animStateActions.insert({ "Walk",      [this](Player& anim)   { Walk(anim); } });
+    _animStateActions.insert({ "Run",       [this](Player& anim)   { Run(anim); } });
+    _animStateActions.insert({ "Backflip",  [this](Player& anim)   { Backflip(anim); } });
 }
 
 Player::~Player()
@@ -66,6 +67,16 @@ void Player::Run(Player&)
 {
     _animIndex = 2;
     _movementSpeed = 7.0f;
+}
+
+void Player::Backflip(Player&)
+{
+    _animIndex = 0;
+
+    if (_backflipDuration > 0)
+    {
+        _backflipDuration -= GetFrameTime();
+    }
 }
 
 void Player::SetAnimState(const std::string& newState)
@@ -98,7 +109,7 @@ void Player::Update(const Camera& camera)
     }
 
     Vector3 direction{};
-    if (Vector3Distance(_destination, _position) > 0.1f)
+    if (Vector3Distance(_destination, _position) > 0.1f && _backflipDuration < 0.1f)
     {
         direction = Vector3Normalize(_destination - _position);
     }
@@ -108,6 +119,7 @@ void Player::Update(const Camera& camera)
     }
 
     const bool onMove = (Vector3Length(direction) > 0);
+
     if (onMove && IsKeyDown(KEY_LEFT_SHIFT))
     {
         SetAnimState("Run");
@@ -115,6 +127,10 @@ void Player::Update(const Camera& camera)
     else if (onMove)
     {
         SetAnimState("Walk");
+    }
+    else if (_backflipDuration > 0)
+    {
+        SetAnimState("Backflip");
     }
     else
     {
@@ -133,7 +149,12 @@ void Player::Update(const Camera& camera)
         action->second(*this);
     }
 
-    ModelAnimation anim = _modelAnimations[_animIndex];
+    if (IsKeyPressed(KEY_SPACE) && !onMove)
+    {
+        _backflipDuration = 1.7f;
+    }
+
+    const ModelAnimation& anim = _modelAnimations[_animIndex];
     _animCurrentFrame = (_animCurrentFrame + 1) % anim.frameCount;
     UpdateModelAnimation(_model, anim, _animCurrentFrame);
     UpdateTransform3D(_transform, _position, _rotation, _scale);
