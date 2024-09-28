@@ -46,7 +46,7 @@ private:
 	void Idle(Player&);
 	void Walk(Player&);
 	void Run(Player&);
-	void Backflip(Player&);
+	void Breakdance(Player&);
 	void SetAnimState(const std::string& newState);
 
 	Vector3 _scale{};
@@ -56,7 +56,7 @@ private:
 	Transform3D _transform{};
 
 	float _movementSpeed = 0.0f;
-	float _backflipDuration = 0.0f;
+	float _breakdanceDuration = 0.0f;
 
 	int _animsCount = 0;
 	unsigned int _animIndex = 0;

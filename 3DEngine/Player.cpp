@@ -32,14 +32,14 @@ Player::Player()
     _rotation    = QuaternionIdentity();
     _scale       = Vector3{ 1.0f, 1.0f, 1.0f };
 
-    _model.transform = MatrixTranslateV(_position) * QuaternionToMatrix(QuaternionFromEuler(90.0f, 0.0f, 0.0f)) * MatrixScaleV(_scale);
+    _model.transform = MatrixTranslateV(_position) * QuaternionToMatrix(QuaternionFromEuler(96.0f, 0.0f, 0.0f)) * MatrixScaleV(_scale);
 
     _animState = "Idle";
 
-    _animStateActions.insert({ "Idle",      [this](Player& anim)   { Idle(anim); } });
-    _animStateActions.insert({ "Walk",      [this](Player& anim)   { Walk(anim); } });
-    _animStateActions.insert({ "Run",       [this](Player& anim)   { Run(anim); } });
-    _animStateActions.insert({ "Backflip",  [this](Player& anim)   { Backflip(anim); } });
+    _animStateActions.insert({ "Idle",        [this](Player& anim) { Idle(anim); } });
+    _animStateActions.insert({ "Walk",        [this](Player& anim) { Walk(anim); } });
+    _animStateActions.insert({ "Run",         [this](Player& anim) { Run(anim); } });
+    _animStateActions.insert({ "Breakdance",  [this](Player& anim) { Breakdance(anim); } });
 }
 
 Player::~Player()
@@ -69,13 +69,13 @@ void Player::Run(Player&)
     _movementSpeed = 7.0f;
 }
 
-void Player::Backflip(Player&)
+void Player::Breakdance(Player&)
 {
     _animIndex = 0;
 
-    if (_backflipDuration > 0)
+    if (_breakdanceDuration > 0)
     {
-        _backflipDuration -= GetFrameTime();
+        _breakdanceDuration -= GetFrameTime();
     }
 }
 
@@ -109,7 +109,7 @@ void Player::Update(const Camera& camera)
     }
 
     Vector3 direction{};
-    if (Vector3Distance(_destination, _position) > 0.1f && _backflipDuration < 0.1f)
+    if (Vector3Distance(_destination, _position) > 0.1f && _breakdanceDuration < 0.1f)
     {
         direction = Vector3Normalize(_destination - _position);
     }
@@ -128,9 +128,9 @@ void Player::Update(const Camera& camera)
     {
         SetAnimState("Walk");
     }
-    else if (_backflipDuration > 0)
+    else if (_breakdanceDuration > 0)
     {
-        SetAnimState("Backflip");
+        SetAnimState("Breakdance");
     }
     else
     {
@@ -139,8 +139,12 @@ void Player::Update(const Camera& camera)
 
     if (onMove)
     {
+        float rotationSpeed = 5.0f * GetFrameTime();
+
+        Quaternion currentRotation = _rotation;
+        Quaternion targetRotation = QuaternionFromDirection(direction);
+        _rotation = QuaternionSlerp(currentRotation, targetRotation, rotationSpeed);
         _position = _position + Vector3Scale(direction, _movementSpeed * GetFrameTime());
-        _rotation = QuaternionFromDirection(direction);
     }
 
     auto action = _animStateActions.find(_animState);
@@ -151,7 +155,7 @@ void Player::Update(const Camera& camera)
 
     if (IsKeyPressed(KEY_SPACE) && !onMove)
     {
-        _backflipDuration = 1.7f;
+        _breakdanceDuration = 4.8f;
     }
 
     const ModelAnimation& anim = _modelAnimations[_animIndex];
