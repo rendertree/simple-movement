@@ -32,7 +32,7 @@ Player::Player()
     _rotation    = QuaternionIdentity();
     _scale       = Vector3{ 1.0f, 1.0f, 1.0f };
 
-    _model.transform = MatrixTranslateV(_position) * QuaternionToMatrix(QuaternionFromEuler(96.0f, 0.0f, 0.0f)) * MatrixScaleV(_scale);
+    _model.transform = MatrixTranslateV(_position) * MatrixRotateX(90.0f * DEG2RAD) * MatrixScaleV(_scale);
 
     _animState = "Idle";
 
